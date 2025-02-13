@@ -1,0 +1,251 @@
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block style %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .well {
+            background-color: #eef2ff;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            margin-bottom: 20px;
+            transition: transform 0.3s ease-in-out;
+            border-radius: 20px;
+        }
+
+        .well:hover {
+            transform: scale(1.05);
+        }
+        #attributeDetails {
+        display: none;
+        padding: 10px;
+        width: 21%;
+        background-color: #fff;
+        border-radius: 5px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        animation: fadeIn 0.5s ease-in-out forwards;
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(-20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    </style>
+{% endblock %}
+
+{% block index %}
+{% endblock %}
+
+{% block content %}
+
+                <div class="well">
+                    <h4 style="text-align: center;">Dashboard</h4>
+                </div>
+                <!-- small cards -->
+                <div class="row" style="text-align: center; color: white; margin-left: 20%;">
+                    <div class="col-sm-3">
+                        <div class="well" style="background-color:#234d6f; border-radius: 50px;">
+                            <h4>Users</h4>
+                            <p>{{ users_count }}</p>
+                        </div>
+                    </div>
+                    <div class="col-sm-3">
+                        <div class="well" style="background-color: #234d6f;border-radius: 50px;">
+                            <h4>Admins</h4>
+                            <p>{{consumers}}</p>
+                        </div>
+                    </div>
+                    <!-- <div class="col-sm-3">
+                        <div class="well" style="background-color: #234d6f; border-radius: 50px;">
+                            <h4>Accuracy</h4>
+                            <p>96.75%</p>
+                        </div>
+                    </div> -->
+                    <div class="col-sm-3">
+                        <div class="well" style="background-color: #234d6f; border-radius: 50px;">
+                            <h4>Review Count</h4>
+                            <p >{{review_count}}</p>
+                        </div>
+                    </div>
+                </div>
+                <h1 style="text-align: center; margin-top: 20px;">Crop Details for Karnataka Districts</h1>
+                <div style="clear: both;"></div> <!-- Clear floating elements -->
+
+                <div class="row" style="margin-left: 8%;">
+                        {% for district, crops in crop_data.Karnataka.items %}
+                            <div class="card" style="width: 12%; height: auto; padding: 0 10px; border-radius: 10px; box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2); padding: 16px; background-color: #f1f1f1; margin: 5px 5px;">
+                                <div class="card-header"><center><b>{{ district }}</b></center></div>
+                                <div class="card-body">
+                                    <ul>
+                                        {% for crop in crops %}
+                                            <li onclick="showAttributes('{{ district }}', '{{ crop.crop }}', '{{ crop.attributes.Nitrogen }}', '{{ crop.attributes.Phosphorous }}', '{{ crop.attributes.Potassium }}', '{{ crop.attributes.Temperature }}', '{{ crop.attributes.Humidity }}', '{{ crop.attributes.pH }}', '{{ crop.attributes.Rainfall }}')">{{ crop.crop }}</li>
+                                        {% endfor %}
+                                    </ul>
+                                </div>
+                            </div>
+                        {% endfor %}
+                
+                        <div id="attributeDetails" style="display: none; padding: 10px;margin-left: 4%;"></div>
+
+                </div>
+                
+                
+            
+            
+                <!-- details -->
+                {% if prediction %}
+                <div class="card" style="text-align: center;">
+                    <div class="card-header">
+                        Crop Details
+                    </div>
+                    <div class="card-body">
+                        <p>Prediction:<h1 style="color:#16a34a">  {{ prediction }}</h1></p>
+                
+                        <h2>Input Data:</h2>
+                        <ul>
+                            <li>Nitrogen: {{ input_data.Nitrogen }}</li>
+                            <li>Phosphorous: {{ input_data.Phosphorous }}</li>
+                            <li>Potassium: {{ input_data.Potassium }}</li>
+                            <li>Temperature: {{ input_data.temperature }}</li>
+                            <li>Humidity: {{ input_data.humidity }}</li>
+                            <li>pH: {{ input_data.ph }}</li>
+                            <li>Rainfall: {{ input_data.rainfall }}</li>
+                        </ul>
+                
+                        {% if crop_details %}
+                        <h2>Crop Details:</h2>
+                        <ul>
+                            <li>Nitrogen: {{ crop_details.nitrogen }}</li>
+                            <li>Phosphorous: {{ crop_details.phosphorous }}</li>
+                            <li>Potassium: {{ crop_details.potassium }}</li>
+                            <li>Temperature: {{ crop_details.temperature }}</li>
+                            <li>Humidity: {{ crop_details.humidity }}</li>
+                            <li>pH: {{ crop_details.ph }}</li>
+                            <li>Rainfall: {{ crop_details.rainfall }}</li><br>
+                            <li>Reason: {{ crop_details.reason }}</li>
+                        </ul>
+                        {% endif %}
+                    </div>
+                </div>
+                <br>                
+               <!-- graph -->
+               <div class="row">
+                <div class="col-sm-12">
+                    <!-- Placeholder for Bar Chart -->
+                    <div class="well">
+                        <canvas id="barChart" width="100%" height="40"></canvas>
+                    </div>
+                </div>
+            </div>
+                {% endif %}
+
+
+
+
+
+{% endblock %}
+
+{% block footer %}
+{% endblock %}
+
+{% block script %}
+<script>
+    // Sample data for charts
+    // Define your dynamic data
+    var labels = ["Nitrogen", "Phosphorous", "Potassium", "Temperature", "Humidity", "pH", "Rainfall"];
+    var dataValues = [{{ input_data.Nitrogen }}, {{ input_data.Phosphorous }}, {{ input_data.Potassium }},
+                    {{ input_data.temperature }}, {{ input_data.humidity }}, {{ input_data.ph }}, {{ input_data.rainfall }}];
+
+    // Create the datasets object
+    var datasets = [{
+        label: 'Crop Details',
+        data: dataValues,
+        backgroundColor: 'rgba(75, 192, 192, 0.2)',
+        borderColor: 'rgba(75, 192, 192, 1)',
+        borderWidth: 1
+    }];
+
+    // Define the barChartData object
+    var barChartData = {
+        labels: labels,
+        datasets: datasets
+    };
+
+    //second
+    var lineChartData = {
+        labels: ["January", "February", "March", "April", "May"],
+        datasets: [{
+            label: 'Sessions',
+            data: [50, 45, 60, 55, 70],
+            fill: false,
+            borderColor: 'rgb(75, 192, 192)',
+            tension: 0.1
+        }]
+    };
+    //third
+    var pieChartData = {
+        labels: ["Desktop", "Mobile", "Tablet"],
+        datasets: [{
+            data: [30, 40, 30],
+            backgroundColor: ['rgba(255, 99, 132, 0.7)', 'rgba(54, 162, 235, 0.7)', 'rgba(255, 205, 86, 0.7)'],
+            hoverOffset: 4
+        }]
+    };
+    //forth
+    var doughnutChartData = {
+        labels: ["Male", "Female"],
+        datasets: [{
+            data: [45, 55],
+            backgroundColor: ['rgba(255, 99, 132, 0.7)', 'rgba(54, 162, 235, 0.7)'],
+            hoverOffset: 4
+        }]
+    };
+
+    // Create Bar Chart
+    var barChart = new Chart(document.getElementById('barChart').getContext('2d'), {
+        type: 'bar',
+        data: barChartData,
+    });
+
+    // Create Line Chart
+    var lineChart = new Chart(document.getElementById('lineChart').getContext('2d'), {
+        type: 'line',
+        data: lineChartData,
+    });
+
+    // Create Pie Chart
+    var pieChart = new Chart(document.getElementById('pieChart').getContext('2d'), {
+        type: 'pie',
+        data: pieChartData,
+    });
+
+    // Create Doughnut Chart
+    var doughnutChart = new Chart(document.getElementById('doughnutChart').getContext('2d'), {
+        type: 'doughnut',
+        data: doughnutChartData,
+    });
+</script>
+<script>
+    function showAttributes(district, crop, nitrogen, phosphorous, potassium, temperature, humidity, pH, rainfall) {
+        var attributeDetails = "Place: " + district + "<br>";
+        attributeDetails += "Crop: " + crop + "<br>";
+        attributeDetails += "Nitrogen: " + nitrogen + "<br>";
+        attributeDetails += "Phosphorous: " + phosphorous + "<br>";
+        attributeDetails += "Potassium: " + potassium + "<br>";
+        attributeDetails += "Temperature: " + temperature + "<br>";
+        attributeDetails += "Humidity: " + humidity + "<br>";
+        attributeDetails += "pH: " + pH + "<br>";
+        attributeDetails += "Rainfall: " + rainfall + "<br>";
+
+        document.getElementById("attributeDetails").innerHTML = attributeDetails;
+        document.getElementById("attributeDetails").style.display = "block";
+    }
+        
+</script>
+
+{% endblock %}

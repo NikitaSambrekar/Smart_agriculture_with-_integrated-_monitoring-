@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block title %}Image Predictions{% endblock %}
+
+{% block content %}
+    <div class="container mt-5">
+        <h1 class="text-center">Image Predictions</h1>
+
+        <!-- Table to display predictions -->
+        <table class="table table-striped mt-4">
+            <thead>
+                <tr>
+                    <th scope="col">Image</th>
+                    <th scope="col">Image Name</th>
+                    <th scope="col">Prediction</th>
+                    <th scope="col">Detection Info</th>
+                    <th scope="col">Fertilizer</th>
+                    <th scope="col">Suggestion</th>
+                    <th scope="col">Recommendation</th>
+                    <th scope="col">Uploaded At</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for prediction in predictions %}
+                    <tr>
+                        <!-- Display Image -->
+                        <td>
+                            {% if prediction.image %}
+                                <img src="{{ prediction.image.url }}" alt="Uploaded Image" width="100">
+                            {% else %}
+                                <p>No image uploaded</p>
+                            {% endif %}
+                        </td>
+                        <td>{{ prediction.image_name }}</td>
+                        <td>{{ prediction.prediction }}</td>
+                        <td>{{ prediction.detection_info }}</td>
+                        <td>{{ prediction.fertilizer }}</td>
+                        <td>{{ prediction.suggestion }}</td>
+                        <td>{{ prediction.recommendation }}</td>
+                        <td>{{ prediction.uploaded_at }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% endblock %}
